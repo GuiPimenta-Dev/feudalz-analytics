@@ -1,9 +1,11 @@
 import json
 from dataclasses import dataclass
 
-rarity_table = json.load(open('utils/rarity_table.json'))
-humanz_table = json.load(open('utils/humanz.json'))
-animalz_table = json.load(open('utils/animalz.json'))
+import pandas as pd
+
+rarity_table = json.load(open("utils/rarity_table.json"))
+humanz_table = json.load(open("utils/humanz.json"))
+animalz_table = json.load(open("utils/animalz.json"))
 
 unique_feudalz_idz = [
     "177",
@@ -20,7 +22,7 @@ unique_feudalz_idz = [
     "745",
     "3399",
     "2595",
-    "3797"
+    "3797",
 ]
 
 region_bonus = {
@@ -34,7 +36,9 @@ region_bonus = {
 
 @dataclass
 class Land:
-    energy: int = 1000
+    max_energy = 1000
+    energy: int = max_energy
+    heal_cost = 10
     attacks: int = 2
 
     def __init__(self, region):
@@ -80,8 +84,7 @@ class Player:
 
         bonus += min(orcz, 30)
         dragonz = sum(
-            self.__count_traits('Dragonz', animalz_table, id=id)
-            for id in animalz
+            self.__count_traits("Dragonz", animalz_table, id=id) for id in animalz
         )
         bonus += dragonz * 10
         self.attack_bonus = min(bonus, 65)
@@ -90,17 +93,16 @@ class Player:
         bonus = 0
 
         for id in feudalz:
-            traits = humanz_table[id]['traits']
+            traits = humanz_table[id]["traits"]
             for trait in traits:
-                trait_rarity = round(trait['trait_count'] / 4444) * 100
+                trait_rarity = round(trait["trait_count"] / 4444) * 100
                 if trait_rarity <= 3:
                     bonus += 2
                 elif trait_rarity == 4:
                     bonus += 1
 
         male_bonus = sum(
-            self.__count_traits('Human Male', humanz_table, id=id)
-            for id in feudalz
+            self.__count_traits("Human Male", humanz_table, id=id) for id in feudalz
         )
 
         bonus += min(male_bonus, 10)
@@ -108,16 +110,15 @@ class Player:
         bonus += min(len(animalz) * 0.2, 10)
 
         duck_bonus = sum(
-            self.__count_traits('Pure Gold', animalz_table, id=id)
-            for id in animalz
+            self.__count_traits("Pure Gold", animalz_table, id=id) for id in animalz
         )
         bonus += duck_bonus * 10
 
         self.defense_bonus = min(bonus, 65)
 
     def __count_traits(self, value, table, id):
-        for i in table[id]['traits']:
-            if i['value'] == value:
+        for i in table[id]["traits"]:
+            if i["value"] == value:
                 return 1
         return 0
 
@@ -127,10 +128,11 @@ class MockPlayer:
     attack_bonus: float
     defense_bonus: float
     goldz = 0
-    cost = 0
+    heal_cost = 0
+    recharge_cost = 0
 
     def __init__(self, attack_bonus, defense_bonus):
-        self.victories = []
-        self.defeats = []
+        # self.history = pd.DataFrame(columns=['day', 'energy', 'goldz', 'my_total', 'enemy_total', 'result'])
+        self.history = []
         self.attack_bonus = min(attack_bonus, 65)
         self.defense_bonus = min(defense_bonus, 65)
