@@ -1,4 +1,5 @@
 import warnings
+from typing import List
 
 import pandas as pd
 
@@ -9,11 +10,11 @@ warnings.filterwarnings("ignore")
 
 
 def create_mock_game(
-        my_attack_bonus: float,
-        my_defense_bonus: float = 0,
-        my_region: str = "Grassland",
-        enemy_defense_bonus: float = 0,
-        enemy_region: str = "Grassland",
+    my_attack_bonus: float,
+    my_defense_bonus: float = 0,
+    my_region: str = "Grassland",
+    enemy_defense_bonus: float = 0,
+    enemy_region: str = "Grassland",
 ):
     me = MockPlayer(attack_bonus=my_attack_bonus, defense_bonus=my_defense_bonus)
     my_land = Land(region=my_region)
@@ -22,16 +23,27 @@ def create_mock_game(
     return Game(me=me, my_land=my_land, enemy=enemy, enemy_land=enemy_land)
 
 
+def merge_dfs(
+    column: str, names: List, dfs: List, pk: str = None, limits: tuple = (None, None)
+):
+    df_merged = pd.DataFrame()
+    if pk:
+        df_merged[pk] = dfs[0][pk]
+    for index, df in enumerate(dfs):
+        df_merged[names[index]] = df[column]
+    return df_merged[limits[0] : limits[1]]
+
+
 def get_df_over_increase(
-        enemy_defense_bonus: float,
-        my_attack_bonus: int = 0,
-        my_defense_bonus: float = 0,
-        min_var: int = 0,
-        cap: int = 70,
-        step: int = 5,
-        variation: str = "attack",
-        games: int = 100,
-        attacks: int = 100,
+    enemy_defense_bonus: float,
+    my_attack_bonus: int = 0,
+    my_defense_bonus: float = 0,
+    min_var: int = 0,
+    cap: int = 70,
+    step: int = 5,
+    variation: str = "attack",
+    games: int = 100,
+    attacks: int = 100,
 ):
     df1 = df = pd.DataFrame(
         columns=[
@@ -95,23 +107,27 @@ def get_df_over_increase(
 
 
 def simulation(
-        my_defense_bonus: float,
-        my_attack_bonus: float,
-        enemy_defense_bonus: float,
-        use: int = 20,
-        hero: str = None,
-        rarity: str = "usual",
-        games=100,
-        attacks: int = 100,
-        days: int = 5,
-        recharge=10,
-        group: bool = False,
+    my_defense_bonus: float,
+    my_attack_bonus: float,
+    enemy_defense_bonus: float,
+    use: int = 20,
+    hero: str = None,
+    rarity: str = "usual",
+    games=100,
+    attacks: int = 100,
+    days: int = 5,
+    recharge=10,
+    group: bool = False,
 ):
     df_total = df = pd.DataFrame(
         columns=[
             "day",
             "energy",
             "goldz",
+            "heal_cost",
+            "recharge_cost",
+            "total_cost",
+            "profit",
             "my_defense_bonus",
             "my_attack_bonus",
             "my_dice",
@@ -133,15 +149,27 @@ def simulation(
                 game.attack()
         df = df.append(game.me.history, ignore_index=True)
 
+    max_energy = Land.max_energy
     for i in df.groupby("day"):
+        energy = round(i[1].energy.mean(), 2) * 2
+        max_energy, heal_cost = calculate_heal_cost(
+            max_energy=max_energy, energy=energy
+        )
+        recharge_cost = i[1].recharge_cost.mean() * 2
+        total_cost = heal_cost + recharge_cost
+        goldz = round(i[1].goldz.mean(), 2)
         df_total = df_total.append(
             {
                 "day": i[0],
-                "energy": round(i[1].energy.mean(), 2),
+                "energy": energy,
+                "heal_cost": heal_cost,
+                "recharge_cost": recharge_cost,
+                "profit": goldz - total_cost,
+                "total_cost": total_cost,
                 "my_defense_bonus": round(i[1].my_defense_bonus.mean(), 2),
                 "my_attack_bonus": round(i[1].my_attack_bonus.mean(), 2),
                 "enemy_defense_bonus": round(i[1].enemy_defense_bonus.mean(), 2),
-                "goldz": round(i[1].goldz.mean(), 2),
+                "goldz": goldz,
                 "my_dice": round(i[1].my_dice.mean(), 2),
                 "enemy_dice": round(i[1].enemy_dice.mean(), 2),
             },
@@ -149,11 +177,15 @@ def simulation(
         )
 
     df_grouped = pd.DataFrame(
-        [[0, None, 0, None, None, None, None, None]],
+        [[0, None, 0, None, None, None, None, None, None, None, None, None]],
         columns=[
             "day",
             "energy",
             "goldz",
+            "recharge_cost",
+            "total_cost",
+            "heal_cost",
+            "profit",
             "my_defense_bonus",
             "my_attack_bonus",
             "my_dice",
@@ -163,7 +195,7 @@ def simulation(
     )
     if group:
         for i in range(days, attacks // 2 + days, days):
-            data = df_total[i - days: i]
+            data = df_total[i - days : i]
 
             df_grouped = df_grouped.append(
                 {
@@ -173,6 +205,10 @@ def simulation(
                     "my_attack_bonus": round(data.my_attack_bonus.mean(), 2),
                     "enemy_defense_bonus": round(data.enemy_defense_bonus.mean(), 2),
                     "goldz": round(data.goldz.sum(), 2),
+                    "recharge_cost": data.recharge_cost.sum(),
+                    "total_cost": data.total_cost.sum(),
+                    "heal_cost": data.heal_cost.sum(),
+                    "profit": round(data.profit.sum(), 2),
                     "my_dice": round(data.my_dice.mean(), 2),
                     "enemy_dice": round(data.enemy_dice.mean(), 2),
                 },
@@ -181,3 +217,11 @@ def simulation(
         return df_grouped
 
     return df_total
+
+
+def calculate_heal_cost(max_energy, energy):
+    heal_cost = 0
+    if max_energy <= 0:
+        heal_cost, max_energy = Land.heal_cost, Land.max_energy
+    max_energy -= energy
+    return max_energy, heal_cost

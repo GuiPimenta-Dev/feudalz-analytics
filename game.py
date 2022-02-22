@@ -1,4 +1,4 @@
-from random import randint
+from random import randint, choices
 
 from models import Player, Land, History
 
@@ -35,6 +35,9 @@ earnings_range = [
     },
 ]
 
+NUMBER_OF_ATTACKS = 2
+RECHARGE_COST = 1
+
 
 class Game:
     day: int = 1
@@ -57,13 +60,30 @@ class Game:
         enemy_dice = randint(1, 70)
 
         if hero == "urzog":
-            attack_bonus, defense_bonus, energy, goldz = self.__urzog(my_dice=my_dice, enemy_dice=enemy_dice,
-                                                                      rarity=rarity)
+            attack_bonus, defense_bonus, energy, goldz = self.__urzog(
+                my_dice=my_dice, enemy_dice=enemy_dice, rarity=rarity
+            )
         elif hero == "tanker":
-            attack_bonus, defense_bonus, energy, goldz = self.__tanker(my_dice=my_dice, enemy_dice=enemy_dice,
-                                                                       rarity=rarity)
+            attack_bonus, defense_bonus, energy, goldz = self.__tanker(
+                my_dice=my_dice, enemy_dice=enemy_dice, rarity=rarity
+            )
+        elif hero == "kongz":
+            attack_bonus, defense_bonus, energy, goldz = self.__kongz(
+                my_dice=my_dice, enemy_dice=enemy_dice, rarity=rarity
+            )
+        elif hero == "lyz":
+            attack_bonus, defense_bonus, energy, goldz = self.__lyz(
+                my_dice=my_dice, enemy_dice=enemy_dice, rarity=rarity
+            )
+        elif hero == "vampirao":
+            attack_bonus, defense_bonus, energy, goldz = self.__vampirao(
+                my_dice=my_dice, enemy_dice=enemy_dice, rarity=rarity
+            )
+
         else:
-            attack_bonus, defense_bonus, energy, goldz = self.__no_hero(my_dice=my_dice, enemy_dice=enemy_dice)
+            attack_bonus, defense_bonus, energy, goldz = self.__no_hero(
+                my_dice=my_dice, enemy_dice=enemy_dice
+            )
 
         self.my_land.energy -= energy
         self.me.goldz += goldz
@@ -72,31 +92,32 @@ class Game:
         history = {
             "day": self.day,
             "energy": energy,
+            "recharge_cost": RECHARGE_COST / NUMBER_OF_ATTACKS,
             "goldz": goldz,
             "my_defense_bonus": defense_bonus,
             "my_attack_bonus": attack_bonus,
             "my_dice": my_dice,
             "enemy_defense_bonus": self.enemy.defense_bonus,
-            "enemy_dice": enemy_dice
+            "enemy_dice": enemy_dice,
         }
 
         self.me.history.append(history)
 
     def __wait_a_day(self):
-        self.my_land.attacks = 2
+        self.my_land.attacks = NUMBER_OF_ATTACKS
         self.day += 1
-        self.me.recharge_cost += 1
+        self.me.recharge_cost += RECHARGE_COST
 
     def __heal_land(self):
         self.my_land.energy = self.my_land.max_energy
         self.me.heal_cost += self.my_land.heal_cost
 
     def __no_hero(self, my_dice, enemy_dice):
-        energy = self.__self_damage(
-            my_dice=my_dice, defense_bonus=self.me.defense_bonus
-        )
         my_total = my_dice + self.me.attack_bonus
         enemy_total = enemy_dice + self.enemy.defense_bonus
+        energy = self.__self_damage(
+            enemy_total=enemy_total, defense_bonus=self.me.defense_bonus
+        )
         goldz = self.__calculate_earning(my_total, enemy_total)
         return self.me.attack_bonus, self.me.defense_bonus, energy, goldz
 
@@ -106,7 +127,7 @@ class Game:
         my_total = my_dice + attack_bonus
         enemy_total = enemy_dice + self.enemy.defense_bonus
         energy = self.__self_damage(
-            my_dice=my_dice, defense_bonus=self.me.defense_bonus
+            enemy_total=enemy_total, defense_bonus=self.me.defense_bonus
         )
         goldz = self.__calculate_earning(my_total, enemy_total)
         return attack_bonus, self.me.defense_bonus, energy, goldz
@@ -117,14 +138,55 @@ class Game:
         my_total = my_dice + self.me.attack_bonus
         enemy_total = enemy_dice + self.enemy.defense_bonus
         energy = self.__self_damage(
-            my_dice=my_dice, defense_bonus=defense_bonus
+            enemy_total=enemy_total, defense_bonus=defense_bonus
         )
         goldz = self.__calculate_earning(my_total, enemy_total)
         return self.me.attack_bonus, defense_bonus, energy, goldz
 
+    def __kongz(self, my_dice, enemy_dice, rarity):
+        stats = {"usual": 0.25, "unusual": 0.30, "rare": 0.40, "epic": 0.55}
+        my_total = my_dice + self.me.attack_bonus
+        critical = choices([True, False], [stats[rarity], 1 - stats[rarity]])[0]
+        if critical:
+            my_total *= 2
+        enemy_total = enemy_dice + self.enemy.defense_bonus
+        energy = self.__self_damage(
+            enemy_total=enemy_total, defense_bonus=self.me.defense_bonus
+        )
+        goldz = self.__calculate_earning(my_total, enemy_total)
+        return self.me.attack_bonus, self.me.defense_bonus, energy, goldz
+
+    def __lyz(self, my_dice, enemy_dice, rarity):
+        stats = {"usual": 0.20, "unusual": 0.26, "rare": 0.32, "epic": 0.45}
+        my_total = my_dice + self.me.attack_bonus
+        critical = choices([True, False], [stats[rarity], 1 - stats[rarity]])[0]
+        enemy_total = enemy_dice + self.enemy.defense_bonus
+        if critical:
+            energy = 0
+        else:
+            energy = self.__self_damage(
+                enemy_total=enemy_total, defense_bonus=self.me.defense_bonus
+            )
+
+        goldz = self.__calculate_earning(my_total, enemy_total)
+        return self.me.attack_bonus, self.me.defense_bonus, energy, goldz
+
+    def __vampirao(self, my_dice, enemy_dice, rarity):
+        stats = {"usual": 0.15, "unusual": 0.20, "rare": 0.30, "epic": 0.40}
+        my_total = my_dice + self.me.attack_bonus
+        critical = choices([True, False], [stats[rarity], 1 - stats[rarity]])[0]
+        enemy_total = enemy_dice + self.enemy.defense_bonus
+        life_steal = my_dice + self.me.defense_bonus if critical else 0
+        energy = self.__self_damage(
+            enemy_total=enemy_total, defense_bonus=self.me.defense_bonus
+        )
+
+        goldz = self.__calculate_earning(my_total, enemy_total)
+        return self.me.attack_bonus, self.me.defense_bonus, energy - life_steal, goldz
+
     @staticmethod
-    def __self_damage(my_dice, defense_bonus):
-        return round(my_dice * (1 - (0.008 * defense_bonus)))
+    def __self_damage(enemy_total, defense_bonus):
+        return round(enemy_total * (1 - (0.008 * defense_bonus)))
 
     @staticmethod
     def __calculate_earning(my_total, enemy_total):
