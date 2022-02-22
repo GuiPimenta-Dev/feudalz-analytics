@@ -3,20 +3,26 @@ from typing import List
 
 import pandas as pd
 
-from utils.fc import simulation
+from utils.fc import simulation, merge_dfs
 
 warnings.filterwarnings("ignore")
 
 
-def merge_dfs(column: str, names: List, dfs: List, pk: str = None):
-    df_merged = pd.DataFrame()
-
+def get_diff(
+    df: pd.DataFrame,
+    column: str,
+    names=["no_hero", "usual", "unusual", "rare", "epic"],
+    column_names=["usual_diff", "unusual_diff", "rare_diff", "epic_diff"],
+    pk: str = "day",
+):
+    df2 = pd.DataFrame()
     if pk:
-        df_merged[pk] = dfs[0][pk]
+        df2[pk] = df[pk]
+    for index, name in enumerate(names):
+        if index < len(column_names):
+            df2[column_names[index]] = df[names[index + 1]] - df[column]
 
-    for index, df in enumerate(dfs):
-        df_merged[names[index]] = df[column]
-    return df_merged
+    return df2
 
 
 if __name__ == "__main__":
@@ -56,33 +62,64 @@ if __name__ == "__main__":
     #     group=False,
     # )
 
-    #
-    # names = ['No Hero', 'Usual', 'Unusual', 'Rare', 'Epic']
-    # df = df.rename(columns={'goldz': 'No Hero'})
-    # df = df.rename(columns={'goldz': 'No Hero'})
-    # df = df.rename(columns={'goldz': 'No Hero'})
-    # df = df.rename(columns={'goldz': 'No Hero'})
-    # df = df.rename(columns={'goldz': 'No Hero'})
-    # pd.concat([df, df1, df2, df3, df4])[['day', 'No Hero', 'Unusual', 'Rare', 'Epic']]
-    # df = merge_dfs(
-    #     "goldz",
-    #     ["No Hero", "Usual", "Unusual", "Rare", "Epic"],
-    #     [df, df1, df2, df3, df4],
-    #     pk="day",
-    # )
-    # x = simulation(
-    #     my_defense_bonus=0,
-    #     my_attack_bonus=0,
-    #     enemy_defense_bonus=13.8,
-    #     group=False,
-    # )
-    y = simulation(
+    df = simulation(
+        my_defense_bonus=0, my_attack_bonus=65, enemy_defense_bonus=13.8, group=False
+    )
+    df1 = simulation(
+        my_defense_bonus=0,
+        my_attack_bonus=65,
+        enemy_defense_bonus=13.8,
+        hero="urzog",
+        rarity="usual",
+        group=False,
+    )
+    df2 = simulation(
+        my_defense_bonus=0,
+        my_attack_bonus=65,
+        enemy_defense_bonus=13.8,
+        hero="urzog",
+        rarity="unusual",
+        group=False,
+    )
+    df3 = simulation(
+        my_defense_bonus=0,
+        my_attack_bonus=65,
+        enemy_defense_bonus=13.8,
+        hero="urzog",
+        rarity="rare",
+        group=False,
+    )
+    df4 = simulation(
         my_defense_bonus=0,
         my_attack_bonus=65,
         enemy_defense_bonus=13.8,
         hero="urzog",
         rarity="epic",
         group=False,
-        games=1
     )
-    print(x)
+    df = merge_dfs(
+        dfs=[df, df1, df2, df3, df4],
+        column="goldz",
+        names=["no_hero", "usual", "unusual", "rare", "epic"],
+        pk="day",
+        limits=(20, 30),
+    )
+
+    df = get_diff(df=df, column="no_hero")
+    pass
+# x = simulation(
+#     my_defense_bonus=0,
+#     my_attack_bonus=0,
+#     enemy_defense_bonus=13.8,
+#     group=False,
+# )
+# y = simulation(
+#     my_defense_bonus=0,
+#     my_attack_bonus=65,
+#     enemy_defense_bonus=13.8,
+#     hero="urzog",
+#     rarity="epic",
+#     group=False,
+#     games=1
+# )
+# print(x)

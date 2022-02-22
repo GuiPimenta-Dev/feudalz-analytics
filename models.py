@@ -114,7 +114,7 @@ class Player:
         )
         bonus += duck_bonus * 10
 
-        self.defense_bonus = min(bonus, 65)
+        self.defense_bonus = min(bonus, 75)
 
     def __count_traits(self, value, table, id):
         for i in table[id]["traits"]:
@@ -135,4 +135,4 @@ class MockPlayer:
         # self.history = pd.DataFrame(columns=['day', 'energy', 'goldz', 'my_total', 'enemy_total', 'result'])
         self.history = []
         self.attack_bonus = min(attack_bonus, 65)
-        self.defense_bonus = min(defense_bonus, 65)
+        self.defense_bonus = min(defense_bonus, 75)

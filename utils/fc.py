@@ -10,11 +10,11 @@ warnings.filterwarnings("ignore")
 
 
 def create_mock_game(
-    my_attack_bonus: float,
-    my_defense_bonus: float = 0,
-    my_region: str = "Grassland",
-    enemy_defense_bonus: float = 0,
-    enemy_region: str = "Grassland",
+        my_attack_bonus: float,
+        my_defense_bonus: float = 0,
+        my_region: str = "Grassland",
+        enemy_defense_bonus: float = 0,
+        enemy_region: str = "Grassland",
 ):
     me = MockPlayer(attack_bonus=my_attack_bonus, defense_bonus=my_defense_bonus)
     my_land = Land(region=my_region)
@@ -24,26 +24,57 @@ def create_mock_game(
 
 
 def merge_dfs(
-    column: str, names: List, dfs: List, pk: str = None, limits: tuple = (None, None)
+        column: str,
+        dfs: List,
+        pk: str = None,
+        limits: tuple = (None, None),
+        names=["no_hero", "usual", "unusual", "rare", "epic"],
 ):
     df_merged = pd.DataFrame()
     if pk:
         df_merged[pk] = dfs[0][pk]
     for index, df in enumerate(dfs):
         df_merged[names[index]] = df[column]
-    return df_merged[limits[0] : limits[1]]
+    return df_merged[limits[0]: limits[1]]
+
+
+def get_df_columns_mean(df: pd.DataFrame, columns=['no_hero', 'usual', 'unusual', 'rare', 'epic']):
+    df = df[columns].mean(axis=0)
+    return df.to_frame().T
+
+
+def get_df_columns_sum(df: pd.DataFrame, columns=['no_hero', 'usual', 'unusual', 'rare', 'epic']):
+    df = df[columns].sum(axis=0)
+    return df.to_frame().T
+
+
+def get_diff(
+        df: pd.DataFrame,
+        column: str = "no_hero",
+        pk: str = "day",
+        names=["no_hero", "usual", "unusual", "rare", "epic"],
+        column_names=["usual", "unusual", "rare", "epic"],
+):
+    df2 = pd.DataFrame()
+    if pk:
+        df2[pk] = df[pk]
+    for index, name in enumerate(names):
+        if index < len(column_names):
+            df2[column_names[index]] = df[names[index + 1]] - df[column]
+
+    return df2
 
 
 def get_df_over_increase(
-    enemy_defense_bonus: float,
-    my_attack_bonus: int = 0,
-    my_defense_bonus: float = 0,
-    min_var: int = 0,
-    cap: int = 70,
-    step: int = 5,
-    variation: str = "attack",
-    games: int = 100,
-    attacks: int = 100,
+        enemy_defense_bonus: float,
+        my_attack_bonus: int = 0,
+        my_defense_bonus: float = 0,
+        min_var: int = 0,
+        cap: int = 70,
+        step: int = 5,
+        variation: str = "attack",
+        games: int = 100,
+        attacks: int = 100,
 ):
     df1 = df = pd.DataFrame(
         columns=[
@@ -107,17 +138,17 @@ def get_df_over_increase(
 
 
 def simulation(
-    my_defense_bonus: float,
-    my_attack_bonus: float,
-    enemy_defense_bonus: float,
-    use: int = 20,
-    hero: str = None,
-    rarity: str = "usual",
-    games=100,
-    attacks: int = 100,
-    days: int = 5,
-    recharge=10,
-    group: bool = False,
+        my_defense_bonus: float,
+        my_attack_bonus: float,
+        enemy_defense_bonus: float,
+        use: int = 20,
+        hero: str = None,
+        rarity: str = "usual",
+        games=100,
+        attacks: int = 100,
+        days: int = 5,
+        recharge=10,
+        group: bool = False,
 ):
     df_total = df = pd.DataFrame(
         columns=[
@@ -199,7 +230,7 @@ def simulation(
     )
     if group:
         for i in range(days, attacks // 2 + days, days):
-            data = df_total[i - days : i]
+            data = df_total[i - days: i]
 
             df_grouped = df_grouped.append(
                 {

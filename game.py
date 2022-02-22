@@ -150,7 +150,7 @@ class Game:
         return self.me.attack_bonus, self.enemy.defense_bonus, energy, goldz
 
     def __kongz(self, my_dice, enemy_dice, rarity):
-        stats = {"usual": 0.25, "unusual": 0.30, "rare": 0.40, "epic": 0.55}
+        stats = {"usual": 0.25, "unusual": 0.50, "rare": 0.75, "epic": 1}
         my_total = my_dice + self.me.attack_bonus
         critical = choices([True, False], [stats[rarity], 1 - stats[rarity]])[0]
         if critical:
@@ -163,7 +163,7 @@ class Game:
         return my_total - 2 * my_dice, self.enemy.defense_bonus, energy, goldz
 
     def __lyz(self, my_dice, enemy_dice, rarity):
-        stats = {"usual": 0.20, "unusual": 0.26, "rare": 0.32, "epic": 0.45}
+        stats = {"usual": 0.25, "unusual": 0.5, "rare": 0.75, "epic": 1}
         my_total = my_dice + self.me.attack_bonus
         critical = choices([True, False], [stats[rarity], 1 - stats[rarity]])[0]
         enemy_total = enemy_dice + self.enemy.defense_bonus
@@ -178,7 +178,7 @@ class Game:
         return self.me.attack_bonus, self.enemy.defense_bonus, energy, goldz
 
     def __vampirao(self, my_dice, enemy_dice, rarity):
-        stats = {"usual": 0.15, "unusual": 0.20, "rare": 0.30, "epic": 0.40}
+        stats = {"usual": 0.25, "unusual": 0.50, "rare": 0.75, "epic": 1}
         my_total = my_dice + self.me.attack_bonus
         critical = choices([True, False], [stats[rarity], 1 - stats[rarity]])[0]
         enemy_total = enemy_dice + self.enemy.defense_bonus
@@ -188,7 +188,12 @@ class Game:
         )
 
         goldz = self.__calculate_earning(my_total, enemy_total)
-        return self.me.attack_bonus, self.enemy.defense_bonus, energy - life_steal, goldz
+        return (
+            self.me.attack_bonus,
+            self.enemy.defense_bonus,
+            energy - life_steal,
+            goldz,
+        )
 
     @staticmethod
     def __self_damage(enemy_total, defense_bonus):
