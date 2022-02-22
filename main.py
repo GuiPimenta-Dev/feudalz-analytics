@@ -27,7 +27,7 @@ if __name__ == "__main__":
         my_defense_bonus=0,
         my_attack_bonus=65,
         enemy_defense_bonus=13.8,
-        hero="kongz",
+        hero="double",
         rarity="usual",
         group=False,
     )
@@ -76,6 +76,6 @@ if __name__ == "__main__":
         enemy_defense_bonus=13.8,
         hero="urzog",
         rarity="epic",
-        group=True,
+        group=False,
     )
     print(x)
