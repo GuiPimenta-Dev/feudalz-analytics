@@ -91,7 +91,7 @@ class Game:
 
         history = {
             "day": self.day,
-            "energy": energy,
+            "energy": -1 * energy,
             "recharge_cost": RECHARGE_COST / NUMBER_OF_ATTACKS,
             "attack": self.my_land.attacks,
             "goldz": goldz,
