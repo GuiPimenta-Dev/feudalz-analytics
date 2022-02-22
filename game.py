@@ -93,6 +93,7 @@ class Game:
             "day": self.day,
             "energy": energy,
             "recharge_cost": RECHARGE_COST / NUMBER_OF_ATTACKS,
+            "attack": self.my_land.attacks,
             "goldz": goldz,
             "my_defense_bonus": self.me.defense_bonus,
             "my_attack_bonus": my_attack_bonus,
@@ -122,12 +123,12 @@ class Game:
         return self.me.attack_bonus, self.enemy.defense_bonus, energy, goldz
 
     def __urzog(self, my_dice, enemy_dice, rarity):
-        stats = {"usual": 10, "unusual": 15, "rare": 27, "epic": 35}
+        stats = {"usual": 0.25, "unusual": 0.50, "rare": 0.75, "epic": 1}
         my_total = my_dice + self.me.attack_bonus
         enemy_defense_bonus = self.enemy.defense_bonus
         critical = choices([True, False], [stats[rarity], 1 - stats[rarity]])[0]
         if critical:
-            enemy_defense_bonus *= 0.3
+            enemy_defense_bonus = 0
 
         enemy_total = enemy_dice + enemy_defense_bonus
         energy = self.__self_damage(
@@ -195,7 +196,7 @@ class Game:
 
     @staticmethod
     def __calculate_earning(my_total, enemy_total):
-        percentage = round(my_total / enemy_total) * 100
+        percentage = round(my_total / enemy_total * 100)
         for item in earnings_range:
             if percentage >= item["percentage"]:
                 return item["earning"]

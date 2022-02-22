@@ -122,6 +122,7 @@ def simulation(
     df_total = df = pd.DataFrame(
         columns=[
             "day",
+            "attack",
             "energy",
             "goldz",
             "heal_cost",
@@ -151,36 +152,39 @@ def simulation(
 
     max_energy = Land.max_energy
     for i in df.groupby("day"):
-        energy = round(i[1].energy.mean(), 2) * 2
-        max_energy, heal_cost = calculate_heal_cost(
-            max_energy=max_energy, energy=energy
-        )
-        recharge_cost = i[1].recharge_cost.mean() * 2
-        total_cost = heal_cost + recharge_cost
-        goldz = round(i[1].goldz.mean(), 2)
-        df_total = df_total.append(
-            {
-                "day": i[0],
-                "energy": energy,
-                "heal_cost": heal_cost,
-                "recharge_cost": recharge_cost,
-                "profit": goldz - total_cost,
-                "total_cost": total_cost,
-                "my_defense_bonus": round(i[1].my_defense_bonus.mean(), 2),
-                "my_attack_bonus": round(i[1].my_attack_bonus.mean(), 2),
-                "enemy_defense_bonus": round(i[1].enemy_defense_bonus.mean(), 2),
-                "goldz": goldz,
-                "my_dice": round(i[1].my_dice.mean(), 2),
-                "enemy_dice": round(i[1].enemy_dice.mean(), 2),
-            },
-            ignore_index=True,
-        )
+        for j in i[1].groupby("attack"):
+            energy = round(j[1].energy.mean(), 2)
+            max_energy, heal_cost = calculate_heal_cost(
+                max_energy=max_energy, energy=energy
+            )
+            recharge_cost = j[1].recharge_cost.mean()
+            total_cost = heal_cost + recharge_cost
+            goldz = round(j[1].goldz.mean(), 2)
+            df_total = df_total.append(
+                {
+                    "day": i[0],
+                    "attack": j[0],
+                    "energy": energy,
+                    "heal_cost": heal_cost,
+                    "recharge_cost": recharge_cost,
+                    "profit": goldz - total_cost,
+                    "total_cost": total_cost,
+                    "my_defense_bonus": round(j[1].my_defense_bonus.mean(), 2),
+                    "my_attack_bonus": round(j[1].my_attack_bonus.mean(), 2),
+                    "enemy_defense_bonus": round(j[1].enemy_defense_bonus.mean(), 2),
+                    "goldz": goldz,
+                    "my_dice": round(j[1].my_dice.mean(), 2),
+                    "enemy_dice": round(j[1].enemy_dice.mean(), 2),
+                },
+                ignore_index=True,
+            )
 
     df_grouped = pd.DataFrame(
-        [[0, None, 0, None, None, None, None, None, None, None, None, None]],
+        [[0, None, 0, None, None, None, None, None, None, None, None, None, None]],
         columns=[
             "day",
             "energy",
+            "attack",
             "goldz",
             "recharge_cost",
             "total_cost",
