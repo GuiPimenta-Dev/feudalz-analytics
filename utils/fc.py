@@ -150,7 +150,7 @@ def simulation(
         hero: str = None,
         rarity: str = "usual",
         games=100,
-        attacks: int = 100,
+        attacks: int = 40,
         days: int = 5,
         recharge=10,
         group: bool = False,
@@ -166,7 +166,7 @@ def simulation(
             # "total_cost",
             # "profit",
             # "my_defense_bonus",
-            # "my_attack_bonus",
+            "my_attack_bonus",
             # "my_dice",
             # "enemy_defense_bonus",
             # "enemy_dice",
@@ -207,7 +207,7 @@ def simulation(
                     # "profit": goldz - total_cost,
                     # "total_cost": total_cost,
                     # "my_defense_bonus": round(j[1].my_defense_bonus.mean(), 2),
-                    # "my_attack_bonus": round(j[1].my_attack_bonus.mean(), 2),
+                    "my_attack_bonus": round(j[1].my_attack_bonus.mean(), 2),
                     # "enemy_defense_bonus": round(j[1].enemy_defense_bonus.mean(), 2),
                     # "my_dice": round(j[1].my_dice.mean(), 2),
                     # "enemy_dice": round(j[1].enemy_dice.mean(), 2),
@@ -431,6 +431,7 @@ def plot_heroes_sum_diff(
     plt.title(label, fontsize=30)
     plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left", fontsize=20)
     plt.show()
+    return df
 
 
 def plot_heroes_mean_diff(
@@ -515,3 +516,4 @@ def plot_heroes_mean_diff(
     plt.title(label, fontsize=30)
     plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left", fontsize=20)
     plt.show()
+    return df

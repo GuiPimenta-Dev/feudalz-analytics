@@ -26,12 +26,15 @@ def get_diff(
 
 
 if __name__ == "__main__":
-    x = plot_heroes_sum_diff(my_defense_bonus=0, my_attack_bonus=0, enemy_defense_bonus=13.8,
-                         label='Total Diff Goldz Bonus Compared to No Hero by Rarity - 0 Atk Bonus', games=100, column='profit')
-    y = plot_heroes_sum_diff(my_defense_bonus=0, my_attack_bonus=0, enemy_defense_bonus=13.8,
-                         label='Total Diff Goldz Bonus Compared to No Hero by Rarity - 0 Atk Bonus', games=100,
-                         )
-
+    x = simulation(
+            my_defense_bonus=0,
+            my_attack_bonus=0,
+            enemy_defense_bonus=0,
+            games=100,
+            hero='kongz',
+        rarity='epic',
+            attacks= 30,
+    )
     pass
     # )
     # y = simulation(
