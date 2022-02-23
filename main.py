@@ -3,7 +3,7 @@ from typing import List
 
 import pandas as pd
 
-from utils.fc import simulation, merge_dfs
+from utils.fc import simulation, merge_dfs, plot_heroes_mean_diff, plot_heroes_sum_diff
 
 warnings.filterwarnings("ignore")
 
@@ -26,15 +26,21 @@ def get_diff(
 
 
 if __name__ == "__main__":
+    x = plot_heroes_sum_diff(my_defense_bonus=0, my_attack_bonus=0, enemy_defense_bonus=13.8,
+                         label='Total Diff Goldz Bonus Compared to No Hero by Rarity - 0 Atk Bonus', games=100, column='profit')
+    y = plot_heroes_sum_diff(my_defense_bonus=0, my_attack_bonus=0, enemy_defense_bonus=13.8,
+                         label='Total Diff Goldz Bonus Compared to No Hero by Rarity - 0 Atk Bonus', games=100,
+                         )
 
+    pass
     # )
-    y = simulation(
-        my_defense_bonus=0,
-        my_attack_bonus=65,
-        enemy_defense_bonus=13.8,
-        hero="etherman",
-        rarity="epic",
-        group=False,
-        games=100,
-    )
-    print(x)
+    # y = simulation(
+    #     my_defense_bonus=0,
+    #     my_attack_bonus=65,
+    #     enemy_defense_bonus=13.8,
+    #     hero="etherman",
+    #     rarity="epic",
+    #     group=False,
+    #     games=2000,
+    # )
+    # print(x)
