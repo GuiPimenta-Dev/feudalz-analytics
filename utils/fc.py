@@ -5,16 +5,17 @@ import pandas as pd
 
 from game import Game
 from models import Land, MockPlayer
+import matplotlib.pyplot as plt
 
 warnings.filterwarnings("ignore")
 
 
 def create_mock_game(
-        my_attack_bonus: float,
-        my_defense_bonus: float = 0,
-        my_region: str = "Grassland",
-        enemy_defense_bonus: float = 0,
-        enemy_region: str = "Grassland",
+    my_attack_bonus: float,
+    my_defense_bonus: float = 0,
+    my_region: str = "Grassland",
+    enemy_defense_bonus: float = 0,
+    enemy_region: str = "Grassland",
 ):
     me = MockPlayer(attack_bonus=my_attack_bonus, defense_bonus=my_defense_bonus)
     my_land = Land(region=my_region)
@@ -24,36 +25,40 @@ def create_mock_game(
 
 
 def merge_dfs(
-        column: str,
-        dfs: List,
-        pk: str = None,
-        limits: tuple = (None, None),
-        names=["no_hero", "usual", "unusual", "rare", "epic"],
+    column: str,
+    dfs: List,
+    pk: str = None,
+    limits: tuple = (None, None),
+    names=["no_hero", "usual", "unusual", "rare", "epic"],
 ):
     df_merged = pd.DataFrame()
     if pk:
         df_merged[pk] = dfs[0][pk]
     for index, df in enumerate(dfs):
         df_merged[names[index]] = df[column]
-    return df_merged[limits[0]: limits[1]]
+    return df_merged[limits[0] : limits[1]]
 
 
-def get_df_columns_mean(df: pd.DataFrame, columns=['no_hero', 'usual', 'unusual', 'rare', 'epic']):
+def get_df_columns_mean(
+    df: pd.DataFrame, columns=["no_hero", "usual", "unusual", "rare", "epic"]
+):
     df = df[columns].mean(axis=0)
     return df.to_frame().T
 
 
-def get_df_columns_sum(df: pd.DataFrame, columns=['no_hero', 'usual', 'unusual', 'rare', 'epic']):
+def get_df_columns_sum(
+    df: pd.DataFrame, columns=["no_hero", "usual", "unusual", "rare", "epic"]
+):
     df = df[columns].sum(axis=0)
     return df.to_frame().T
 
 
 def get_diff(
-        df: pd.DataFrame,
-        column: str = "no_hero",
-        pk: str = "day",
-        names=["no_hero", "usual", "unusual", "rare", "epic"],
-        column_names=["usual", "unusual", "rare", "epic"],
+    df: pd.DataFrame,
+    column: str = "no_hero",
+    pk: str = "day",
+    names=["no_hero", "usual", "unusual", "rare", "epic"],
+    column_names=["usual", "unusual", "rare", "epic"],
 ):
     df2 = pd.DataFrame()
     if pk:
@@ -66,15 +71,15 @@ def get_diff(
 
 
 def get_df_over_increase(
-        enemy_defense_bonus: float,
-        my_attack_bonus: int = 0,
-        my_defense_bonus: float = 0,
-        min_var: int = 0,
-        cap: int = 70,
-        step: int = 5,
-        variation: str = "attack",
-        games: int = 100,
-        attacks: int = 100,
+    enemy_defense_bonus: float,
+    my_attack_bonus: int = 0,
+    my_defense_bonus: float = 0,
+    min_var: int = 0,
+    cap: int = 70,
+    step: int = 5,
+    variation: str = "attack",
+    games: int = 100,
+    attacks: int = 100,
 ):
     df1 = df = pd.DataFrame(
         columns=[
@@ -138,17 +143,17 @@ def get_df_over_increase(
 
 
 def simulation(
-        my_defense_bonus: float,
-        my_attack_bonus: float,
-        enemy_defense_bonus: float,
-        use: int = 20,
-        hero: str = None,
-        rarity: str = "usual",
-        games=100,
-        attacks: int = 100,
-        days: int = 5,
-        recharge=10,
-        group: bool = False,
+    my_defense_bonus: float,
+    my_attack_bonus: float,
+    enemy_defense_bonus: float,
+    use: int = 20,
+    hero: str = None,
+    rarity: str = "usual",
+    games=100,
+    attacks: int = 100,
+    days: int = 5,
+    recharge=10,
+    group: bool = False,
 ):
     df_total = df = pd.DataFrame(
         columns=[
@@ -230,7 +235,7 @@ def simulation(
     )
     if group:
         for i in range(days, attacks // 2 + days, days):
-            data = df_total[i - days: i]
+            data = df_total[i - days : i]
 
             df_grouped = df_grouped.append(
                 {
@@ -260,3 +265,223 @@ def calculate_heal_cost(max_energy, energy):
         heal_cost, max_energy = Land.heal_cost, Land.max_energy
     max_energy -= energy
     return max_energy, heal_cost
+
+
+def get_hero_diff(
+    my_defense_bonus: int,
+    my_attack_bonus,
+    enemy_defense_bonus,
+    hero,
+    mean: bool = False,
+    sum: bool = False,
+    column: str = "goldz",
+    limits: tuple = (20, 30),
+    key: str = "rarity",
+    pk: str = "day",
+    columns=["usual", "unusual", "rare", "epic"],
+    games: int = 100,
+):
+    if not mean and not sum:
+        raise BaseException("Mean and Sum empty")
+
+    df = simulation(
+        my_defense_bonus=my_defense_bonus,
+        my_attack_bonus=my_attack_bonus,
+        enemy_defense_bonus=enemy_defense_bonus,
+        group=False,
+        games=games,
+    )
+    df1 = simulation(
+        my_defense_bonus=my_defense_bonus,
+        my_attack_bonus=my_attack_bonus,
+        enemy_defense_bonus=enemy_defense_bonus,
+        hero=hero,
+        rarity="usual",
+        group=False,
+        games=games,
+    )
+    df2 = simulation(
+        my_defense_bonus=my_defense_bonus,
+        my_attack_bonus=my_attack_bonus,
+        enemy_defense_bonus=enemy_defense_bonus,
+        hero=hero,
+        rarity="unusual",
+        group=False,
+        games=games,
+    )
+    df3 = simulation(
+        my_defense_bonus=my_defense_bonus,
+        my_attack_bonus=my_attack_bonus,
+        enemy_defense_bonus=enemy_defense_bonus,
+        hero=hero,
+        rarity="rare",
+        group=False,
+        games=games,
+    )
+    df4 = simulation(
+        my_defense_bonus=my_defense_bonus,
+        my_attack_bonus=my_attack_bonus,
+        enemy_defense_bonus=enemy_defense_bonus,
+        hero=hero,
+        rarity="epic",
+        group=False,
+        games=games,
+    )
+    df_hero = merge_dfs(
+        dfs=[df, df1, df2, df3, df4], column=column, pk=pk, limits=limits
+    )
+    df_hero = get_diff(df=df_hero)
+    if sum:
+        df_hero = get_df_columns_sum(df_hero, columns)
+    if mean:
+        df_hero = get_df_columns_mean(df_hero, columns)
+    return pd.DataFrame({key: df_hero.columns, hero: df_hero.iloc[0].to_list()})
+
+
+def plot_heroes_sum_diff(
+    my_defense_bonus: int,
+    my_attack_bonus: int,
+    enemy_defense_bonus: int,
+    label: str,
+    games: int = 100,
+):
+    df_urzog_sum = get_hero_diff(
+        my_defense_bonus=my_defense_bonus,
+        my_attack_bonus=my_attack_bonus,
+        enemy_defense_bonus=enemy_defense_bonus,
+        hero="urzog",
+        sum=True,
+        games=games,
+    )
+    df_dicez_sum = get_hero_diff(
+        my_defense_bonus=my_defense_bonus,
+        my_attack_bonus=my_attack_bonus,
+        enemy_defense_bonus=enemy_defense_bonus,
+        hero="dicez",
+        sum=True,
+        games=games,
+    )
+    df_lyz_sum = get_hero_diff(
+        my_defense_bonus=my_defense_bonus,
+        my_attack_bonus=my_attack_bonus,
+        enemy_defense_bonus=enemy_defense_bonus,
+        hero="lyz",
+        sum=True,
+        games=games,
+    )
+
+    df_vampirao_sum = get_hero_diff(
+        my_defense_bonus=my_defense_bonus,
+        my_attack_bonus=my_attack_bonus,
+        enemy_defense_bonus=enemy_defense_bonus,
+        hero="vampirao",
+        sum=True,
+        games=games,
+    )
+    df_kongz_sum = get_hero_diff(
+        my_defense_bonus=my_defense_bonus,
+        my_attack_bonus=my_attack_bonus,
+        enemy_defense_bonus=enemy_defense_bonus,
+        hero="kongz",
+        sum=True,
+        games=games,
+    )
+    df_etherman_sum = get_hero_diff(
+        my_defense_bonus=my_defense_bonus,
+        my_attack_bonus=my_attack_bonus,
+        enemy_defense_bonus=enemy_defense_bonus,
+        hero="etherman",
+        sum=True,
+        games=games,
+    )
+    df = pd.concat(
+        [
+            df_urzog_sum.set_index("rarity"),
+            df_dicez_sum.set_index("rarity"),
+            df_kongz_sum.set_index("rarity"),
+            df_etherman_sum.set_index("rarity"),
+        ],
+        axis=1,
+    )
+    ax = df.plot.bar(logy=True, figsize=(20, 10))
+    for container in ax.containers:
+        ax.bar_label(container, fontsize=20)
+    plt.xticks(rotation=0, fontsize=30)
+    plt.title(label, fontsize=30)
+    plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left", fontsize=20)
+    plt.show()
+
+
+def plot_heroes_mean_diff(
+    my_defense_bonus: int,
+    my_attack_bonus: int,
+    enemy_defense_bonus: int,
+    label: str,
+    games: int = 100,
+):
+    df_urzog_mean = get_hero_diff(
+        my_defense_bonus=my_defense_bonus,
+        my_attack_bonus=my_attack_bonus,
+        enemy_defense_bonus=enemy_defense_bonus,
+        hero="urzog",
+        mean=True,
+        games=games
+    )
+    df_dicez_mean = get_hero_diff(
+        my_defense_bonus=my_defense_bonus,
+        my_attack_bonus=my_attack_bonus,
+        enemy_defense_bonus=enemy_defense_bonus,
+        hero="dicez",
+        mean=True,
+        games=games,
+    )
+    df_lyz_mean = get_hero_diff(
+        my_defense_bonus=my_defense_bonus,
+        my_attack_bonus=my_attack_bonus,
+        enemy_defense_bonus=enemy_defense_bonus,
+        hero="lyz",
+        mean=True,
+        games=games,
+    )
+
+    df_vampirao_mean = get_hero_diff(
+        my_defense_bonus=my_defense_bonus,
+        my_attack_bonus=my_attack_bonus,
+        enemy_defense_bonus=enemy_defense_bonus,
+        hero="vampirao",
+        mean=True,
+        games=games,
+    )
+    df_kongz_mean = get_hero_diff(
+        my_defense_bonus=my_defense_bonus,
+        my_attack_bonus=my_attack_bonus,
+        enemy_defense_bonus=enemy_defense_bonus,
+        hero="kongz",
+        mean=True,
+        games=games,
+    )
+    df_etherman_mean = get_hero_diff(
+        my_defense_bonus=my_defense_bonus,
+        my_attack_bonus=my_attack_bonus,
+        enemy_defense_bonus=enemy_defense_bonus,
+        hero="etherman",
+        mean=True,
+        games=games,
+    )
+    df = pd.concat(
+        [
+            df_urzog_mean.set_index("rarity"),
+            df_dicez_mean.set_index("rarity"),
+            df_kongz_mean.set_index("rarity"),
+            df_etherman_mean.set_index("rarity"),
+        ],
+        axis=1,
+    )
+    ax = df.plot.bar(logy=True, figsize=(20, 10))
+    for container in ax.containers:
+        ax.bar_label(container, fontsize=20)
+    plt.xticks(rotation=0, fontsize=30)
+    plt.yticks(None)
+    plt.title(label, fontsize=30)
+    plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left", fontsize=20)
+    plt.show()

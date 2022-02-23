@@ -16,15 +16,15 @@ def plot_scatter(x, y, offset: tuple = (0, 10), decimal: int = 2):
 
 
 def plot_line_with_scatter(
-        ax: plt.subplots,
-        df: pd.DataFrame,
-        x: str,
-        y: List[str],
-        labels: List = ["Epic", "Rare", "Unusual", "Usual"],
-        offset: tuple = (0, 10),
-        mean: bool = False,
-        sum: bool = False,
-        decimal: int = 2,
+    ax: plt.subplots,
+    df: pd.DataFrame,
+    x: str,
+    y: List[str],
+    labels: List = ["Epic", "Rare", "Unusual", "Usual"],
+    offset: tuple = (0, 10),
+    mean: bool = False,
+    sum: bool = False,
+    decimal: int = 2,
 ):
     for index, item in enumerate(y):
         if mean:
@@ -48,14 +48,14 @@ def plot_line_with_scatter(
 
 
 def plot_bar_with_scatter(
-        ax: plt.subplots,
-        df: pd.DataFrame,
-        x: str,
-        y: List[str],
-        offset: tuple = (0, 10),
-        mean: bool = False,
-        sum: bool = False,
-        decimal: int = 2,
+    ax: plt.subplots,
+    df: pd.DataFrame,
+    x: str,
+    y: List[str],
+    offset: tuple = (0, 10),
+    mean: bool = False,
+    sum: bool = False,
+    decimal: int = 2,
 ):
     for item in y:
         if mean:

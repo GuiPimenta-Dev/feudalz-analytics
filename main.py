@@ -26,100 +26,15 @@ def get_diff(
 
 
 if __name__ == "__main__":
-    # df = simulation(
-    #     my_defense_bonus=0, my_attack_bonus=65, enemy_defense_bonus=13.8, group=False
-    # )
-    # df1 = simulation(
-    #     my_defense_bonus=0,
-    #     my_attack_bonus=65,
-    #     enemy_defense_bonus=13.8,
-    #     hero="double",
-    #     rarity="usual",
-    #     group=False,
-    # )
-    # df2 = simulation(
-    #     my_defense_bonus=0,
-    #     my_attack_bonus=65,
-    #     enemy_defense_bonus=13.8,
-    #     hero="kongz",
-    #     rarity="unusual",
-    #     group=False,
-    # )
-    # df3 = simulation(
-    #     my_defense_bonus=0,
-    #     my_attack_bonus=65,
-    #     enemy_defense_bonus=13.8,
-    #     hero="kongz",
-    #     rarity="rare",
-    #     group=False,
-    # )
-    # df4 = simulation(
-    #     my_defense_bonus=0,
-    #     my_attack_bonus=65,
-    #     enemy_defense_bonus=13.8,
-    #     hero="kongz",
-    #     rarity="epic",
-    #     group=False,
-    # )
 
-    df = simulation(
-        my_defense_bonus=0, my_attack_bonus=65, enemy_defense_bonus=13.8, group=False
-    )
-    df1 = simulation(
+    # )
+    y = simulation(
         my_defense_bonus=0,
         my_attack_bonus=65,
         enemy_defense_bonus=13.8,
-        hero="urzog",
-        rarity="usual",
-        group=False,
-    )
-    df2 = simulation(
-        my_defense_bonus=0,
-        my_attack_bonus=65,
-        enemy_defense_bonus=13.8,
-        hero="urzog",
-        rarity="unusual",
-        group=False,
-    )
-    df3 = simulation(
-        my_defense_bonus=0,
-        my_attack_bonus=65,
-        enemy_defense_bonus=13.8,
-        hero="urzog",
-        rarity="rare",
-        group=False,
-    )
-    df4 = simulation(
-        my_defense_bonus=0,
-        my_attack_bonus=65,
-        enemy_defense_bonus=13.8,
-        hero="urzog",
+        hero="etherman",
         rarity="epic",
         group=False,
+        games=100,
     )
-    df = merge_dfs(
-        dfs=[df, df1, df2, df3, df4],
-        column="goldz",
-        names=["no_hero", "usual", "unusual", "rare", "epic"],
-        pk="day",
-        limits=(20, 30),
-    )
-
-    df = get_diff(df=df, column="no_hero")
-    pass
-# x = simulation(
-#     my_defense_bonus=0,
-#     my_attack_bonus=0,
-#     enemy_defense_bonus=13.8,
-#     group=False,
-# )
-# y = simulation(
-#     my_defense_bonus=0,
-#     my_attack_bonus=65,
-#     enemy_defense_bonus=13.8,
-#     hero="urzog",
-#     rarity="epic",
-#     group=False,
-#     games=1
-# )
-# print(x)
+    print(x)

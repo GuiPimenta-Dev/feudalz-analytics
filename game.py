@@ -63,8 +63,8 @@ class Game:
             my_attack_bonus, enemy_defense_bonus, energy, goldz = self.__urzog(
                 my_dice=my_dice, enemy_dice=enemy_dice, rarity=rarity
             )
-        elif hero == "double":
-            my_attack_bonus, enemy_defense_bonus, energy, goldz = self.__double(
+        elif hero == "dicez":
+            my_attack_bonus, enemy_defense_bonus, energy, goldz = self.__dicez(
                 my_dice=my_dice, enemy_dice=enemy_dice, rarity=rarity
             )
         elif hero == "kongz":
@@ -79,7 +79,10 @@ class Game:
             my_attack_bonus, enemy_defense_bonus, energy, goldz = self.__vampirao(
                 my_dice=my_dice, enemy_dice=enemy_dice, rarity=rarity
             )
-
+        elif hero == "etherman":
+            my_attack_bonus, enemy_defense_bonus, energy, goldz = self.__etherman(
+                my_dice=my_dice, enemy_dice=enemy_dice, rarity=rarity
+            )
         else:
             my_attack_bonus, enemy_defense_bonus, energy, goldz = self.__no_hero(
                 my_dice=my_dice, enemy_dice=enemy_dice
@@ -137,9 +140,10 @@ class Game:
         goldz = self.__calculate_earning(my_total, enemy_total)
         return self.me.attack_bonus, enemy_defense_bonus, energy, goldz
 
-    def __double(self, my_dice, enemy_dice, rarity):
-        stats = {"usual": 80, "unusual": 100, "rare": 125, "epic": 150}
-        my_dice = max([my_dice, randint(1, stats[rarity])])
+    def __dicez(self, my_dice, enemy_dice, rarity):
+        stats = {"usual": 1, "unusual": 2, "rare": 3, "epic": 4}
+        dices = [randint(1, 70) for _ in range(stats[rarity])]
+        my_dice = max([my_dice, max(dices)])
         my_total = my_dice + self.me.attack_bonus
         enemy_total = enemy_dice + self.enemy.defense_bonus
 
@@ -192,6 +196,35 @@ class Game:
             self.me.attack_bonus,
             self.enemy.defense_bonus,
             energy - life_steal,
+            goldz,
+        )
+
+    def __etherman(self, my_dice, enemy_dice, rarity):
+        attack_bonus = self.me.attack_bonus
+        my_total = my_dice + attack_bonus
+        enemy_total = enemy_dice + self.enemy.defense_bonus
+        energy = self.__self_damage(
+            enemy_total=enemy_total, defense_bonus=self.me.defense_bonus
+        )
+        goldz = self.__calculate_earning(my_total, enemy_total)
+        if self.my_land.attacks == 1:
+            stats = {"usual": 0.25, "unusual": 0.50, "rare": 0.75, "epic": 1}
+            critical = choices([True, False], [stats[rarity], 1 - stats[rarity]])[0]
+            if critical:
+                my_new_dice = randint(1, 70)
+                enemy_new_dice = randint(1, 70)
+                my_new_total = my_new_dice + attack_bonus
+                attack_bonus *= 2
+                enemy_new_total = enemy_new_dice + self.enemy.defense_bonus
+                energy += self.__self_damage(
+                    enemy_total=enemy_new_total, defense_bonus=self.me.defense_bonus
+                )
+                goldz += self.__calculate_earning(my_new_total, enemy_new_total)
+
+        return (
+            attack_bonus,
+            self.enemy.defense_bonus,
+            energy,
             goldz,
         )
 
