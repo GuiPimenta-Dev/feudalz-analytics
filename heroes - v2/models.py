@@ -1,138 +1,213 @@
-import json
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from random import randint, choices
 
-import pandas as pd
-
-rarity_table = json.load(open("../utils/rarity_table.json"))
-humanz_table = json.load(open("../utils/humanz.json"))
-animalz_table = json.load(open("../utils/animalz.json"))
-
-unique_feudalz_idz = [
-    "177",
-    "1055",
-    "133",
-    "3023",
-    "2275",
-    "4310",
-    "4433",
-    "3467",
-    "3964",
-    "3910",
-    "1088",
-    "745",
-    "3399",
-    "2595",
-    "3797",
+NUMBER_OF_ATTACKS = 2
+RECHARGE_COST = 1
+ENEMY_DEFENSE_BONUS = 23.8
+MAX_ENERGY = 1000
+CHARGES = 10
+earnings_range = [
+    {
+        "percentage": 200,
+        "earning": 7,
+    },
+    {
+        "percentage": 150,
+        "earning": 5,
+    },
+    {
+        "percentage": 100,
+        "earning": 3,
+    },
+    {
+        "percentage": 50,
+        "earning": 1,
+    },
+    {
+        "percentage": 0,
+        "earning": 0.5,
+    },
 ]
 
-region_bonus = {
-    "Snowy": 28,
-    "Grassland": 10,
-    "Forest": 16,
-    "Arid": 22,
-    "Unique": 35,
-}
-
 
 @dataclass
-class Land:
-    max_energy = 1000
-    energy: int = max_energy
-    heal_cost = 10
-    attacks: int = 2
-
-    def __init__(self, region):
-        self.defense_bonus = region_bonus[region]
-
-
-@dataclass
-class History:
-    energy: float
-    goldz: float
-    my_total: float
-    enemy_total: float
-
-
-@dataclass
-class Player:
-    attack_bonus: float
-    defense_bonus: float
+class Land(ABC):
+    day = 1
+    energy_cost: int = 0
+    attacks = NUMBER_OF_ATTACKS
     goldz: float = 0
-    cost: float = 0
-
-    def __init__(self, feudalz, orcz, elvez, animalz):
-        self.victories = []
-        self.defeats = []
-        self.get_attack_bonus(feudalz=feudalz, orcz=orcz, animalz=animalz)
-        self.get_defense_bonus(feudalz=feudalz, elvez=elvez, animalz=animalz)
-
-    def get_attack_bonus(self, feudalz, orcz, animalz):
-        bonus = 0
-        for id in feudalz:
-            if id in unique_feudalz_idz:
-                bonus += 6
-            else:
-                rarity = int(rarity_table[id])
-                if rarity <= 250:
-                    bonus += 5
-                elif rarity <= 999:
-                    bonus += 3
-                elif rarity <= 2222:
-                    bonus += 1
-                else:
-                    bonus += 0.1
-
-        bonus += min(orcz, 30)
-        dragonz = sum(
-            self.__count_traits("Dragonz", animalz_table, id=id) for id in animalz
-        )
-        bonus += dragonz * 10
-        self.attack_bonus = min(bonus, 65)
-
-    def get_defense_bonus(self, feudalz, elvez, animalz):
-        bonus = 0
-
-        for id in feudalz:
-            traits = humanz_table[id]["traits"]
-            for trait in traits:
-                trait_rarity = round(trait["trait_count"] / 4444) * 100
-                if trait_rarity <= 3:
-                    bonus += 2
-                elif trait_rarity == 4:
-                    bonus += 1
-
-        male_bonus = sum(
-            self.__count_traits("Human Male", humanz_table, id=id) for id in feudalz
-        )
-
-        bonus += min(male_bonus, 10)
-        bonus += min(elvez * 1.5, 30)
-        bonus += min(len(animalz) * 0.2, 10)
-
-        duck_bonus = sum(
-            self.__count_traits("Pure Gold", animalz_table, id=id) for id in animalz
-        )
-        bonus += duck_bonus * 10
-
-        self.defense_bonus = min(bonus, 75)
-
-    def __count_traits(self, value, table, id):
-        for i in table[id]["traits"]:
-            if i["value"] == value:
-                return 1
-        return 0
-
-
-@dataclass
-class MockPlayer:
-    attack_bonus: float
-    defense_bonus: float
-    goldz = 0
-    heal_cost = 0
-    recharge_cost = 0
+    qtd_attacks: int = 0
 
     def __init__(self, attack_bonus, defense_bonus):
-        # self.history = pd.DataFrame(columns=['day', 'energy', 'goldz', 'my_total', 'enemy_total', 'result'])
-        self.history = []
-        self.attack_bonus = min(attack_bonus, 65)
-        self.defense_bonus = min(defense_bonus, 75)
+        self.attack_bonus = attack_bonus
+        self.defense_bonus = defense_bonus
+
+    @abstractmethod
+    def battle(self):
+        pass
+
+    def attack(self):
+        return randint(1, 70) + self.attack_bonus
+
+    @staticmethod
+    def defend(enemy_defense_bonus: float = ENEMY_DEFENSE_BONUS):
+        return randint(1, 70) + enemy_defense_bonus
+
+    def wait_a_day(self):
+        if self.attacks == 0:
+            self.attacks = NUMBER_OF_ATTACKS
+            self.day += 1
+
+    def self_damage(self, enemy_total):
+        self.energy_cost += round(enemy_total * (1 - (0.008 * self.defense_bonus)), 2)
+
+    def claim_gold(self, my_total, enemy_total):
+        self.qtd_attacks += 1
+        percentage = round(my_total / enemy_total * 100)
+        for item in earnings_range:
+            if percentage >= item["percentage"]:
+                self.goldz += item["earning"]
+
+
+@dataclass
+class NoHero(Land):
+    def __init__(self, attack_bonus, defense_bonus):
+        super().__init__(attack_bonus, defense_bonus)
+
+    def battle(self):
+        my_total = self.attack()
+        enemy_total = self.defend()
+        self.attacks -= 1
+        self.self_damage(enemy_total=enemy_total)
+        self.claim_gold(my_total=my_total, enemy_total=enemy_total)
+        self.wait_a_day()
+
+
+@dataclass
+class Godjira(Land):
+    charges = CHARGES
+
+    def __init__(self, attack_bonus, defense_bonus, rarity):
+        super().__init__(attack_bonus, defense_bonus)
+        self.rarity = rarity
+
+    def battle(self):
+        self.charges -= 1
+        stats = {"common": 0.25, "uncommon": 0.50, "rare": 0.75, "epic": 1}
+        special = choices([True, False], [stats[self.rarity], 1 - stats[self.rarity]])[0]
+        enemy_defense_bonus = 0 if special else ENEMY_DEFENSE_BONUS
+        my_total = self.attack()
+        enemy_total = self.defend(enemy_defense_bonus=enemy_defense_bonus)
+        self.attacks -= 1
+        self.self_damage(enemy_total=enemy_total)
+        self.claim_gold(my_total=my_total, enemy_total=enemy_total)
+        self.wait_a_day()
+
+
+@dataclass
+class Yokai(Land):
+    charges = CHARGES
+
+    def __init__(self, attack_bonus, defense_bonus, rarity):
+        super().__init__(attack_bonus, defense_bonus)
+        self.rarity = rarity
+
+    def battle(self):
+        self.charges -= 1
+        stats = {"common": 2, "uncommon": 3, "rare": 4, "epic": 5}
+        dices = [randint(1, 70) for _ in range(stats[self.rarity])]
+        my_dice = max(dices)
+        my_total = my_dice + self.attack_bonus
+        enemy_total = self.defend()
+        self.attacks -= 1
+        self.self_damage(enemy_total=enemy_total)
+        self.claim_gold(my_total=my_total, enemy_total=enemy_total)
+        self.wait_a_day()
+
+
+@dataclass
+class CyberKongz(Land):
+    charges = CHARGES
+
+    def __init__(self, attack_bonus, defense_bonus, rarity):
+        super().__init__(attack_bonus, defense_bonus)
+        self.rarity = rarity
+
+    def battle(self):
+        self.charges -= 1
+        stats = {"common": 0.25, "uncommon": 0.50, "rare": 0.75, "epic": 1}
+        my_total = self.attack()
+        special = choices([True, False], [stats[self.rarity], 1 - stats[self.rarity]])[0]
+        if special:
+            my_total *= 2
+        enemy_total = self.defend()
+        self.attacks -= 1
+        self.self_damage(enemy_total=enemy_total)
+        self.claim_gold(my_total=my_total, enemy_total=enemy_total)
+        self.wait_a_day()
+
+
+@dataclass
+class Lyz(Land):
+    charges = CHARGES
+
+    def __init__(self, attack_bonus, defense_bonus, rarity):
+        super().__init__(attack_bonus, defense_bonus)
+        self.rarity = rarity
+
+    def battle(self):
+        self.charges -= 1
+        stats = {"common": 0.25, "uncommon": 0.50, "rare": 0.75, "epic": 1}
+        my_total = self.attack()
+        special = choices([True, False], [stats[self.rarity], 1 - stats[self.rarity]])[0]
+        enemy_total = self.defend()
+        if not special:
+            self.self_damage(enemy_total=enemy_total)
+        self.attacks -= 1
+        self.claim_gold(my_total=my_total, enemy_total=enemy_total)
+        self.wait_a_day()
+
+
+@dataclass
+class Etherman(Land):
+    charges = CHARGES
+
+    def __init__(self, attack_bonus, defense_bonus, rarity):
+        super().__init__(attack_bonus, defense_bonus)
+        self.rarity = rarity
+
+    def battle(self):
+        self.charges -= 1
+        stats = {"common": 0.25, "uncommon": 0.50, "rare": 0.75, "epic": 1}
+        my_dice = randint(1, 70)
+        my_total = my_dice + self.attack_bonus
+        special = choices([True, False], [stats[self.rarity], 1 - stats[self.rarity]])[0]
+        if special:
+            self.energy_cost -= my_dice + self.defense_bonus
+        enemy_total = self.defend()
+        self.self_damage(enemy_total=enemy_total)
+        self.attacks -= 1
+        self.claim_gold(my_total=my_total, enemy_total=enemy_total)
+        self.wait_a_day()
+
+
+@dataclass
+class Creepz(Land):
+    charges = CHARGES
+
+    def __init__(self, attack_bonus, defense_bonus, rarity):
+        super().__init__(attack_bonus, defense_bonus)
+        self.rarity = rarity
+
+    def battle(self):
+        self.charges -= 1
+        stats = {"common": 0.25, "uncommon": 0.50, "rare": 0.75, "epic": 1}
+        my_total = self.attack()
+        enemy_total = self.defend()
+        special = choices([True, False], [stats[self.rarity], 1 - stats[self.rarity]])[0]
+        if not special:
+            self.attacks -= 1
+        self.self_damage(enemy_total=enemy_total)
+        self.claim_gold(my_total=my_total, enemy_total=enemy_total)
+        self.wait_a_day()

@@ -1,11 +1,9 @@
-import warnings
-
 from typing import List
 
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from utils.fc import simulation, merge_dfs, get_df_columns_sum, get_hero_diff
+from utils.fc import simulation, merge_dfs, get_hero_diff
 
 
 def plot_scatter(x, y, offset: tuple = (0, 10), decimal: int = 2):

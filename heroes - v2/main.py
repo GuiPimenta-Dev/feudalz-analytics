@@ -1,41 +1,57 @@
 import warnings
-
 import pandas as pd
-
-from utils.fc import get_hero_diff, simulation
-from utils.mpl import plot_heroes_diff
+from models import NoHero, Godjira, Yokai, CyberKongz, Lyz, Etherman, Creepz
+from utils.fc import merge_dfs
 
 warnings.filterwarnings("ignore")
-
-
-def get_diff(
-    df: pd.DataFrame,
-    column: str,
-    names=["no_hero", "common", "uncommon", "rare", "epic"],
-    column_names=["usual_diff", "unusual_diff", "rare_diff", "epic_diff"],
-    pk: str = "day",
-):
-    df2 = pd.DataFrame()
-    if pk:
-        df2[pk] = df[pk]
-    for index, name in enumerate(names):
-        if index < len(column_names):
-            df2[column_names[index]] = df[names[index + 1]] - df[column]
-
-    return df2
-
+ATTACK_BONUS = 65
+DEFENSE_BONUS = 0
 
 if __name__ == "__main__":
-    # y = plot_heroes_sum_diff(0,0,0,'')
-    # x = get_hero_diff(sum=True)
 
-    # )
-    y = simulation(
-        my_defense_bonus=0,
-        my_attack_bonus=65,
-        enemy_defense_bonus=13.8,
-        hero="kongz",
-        rarity="epic",
-        group=False,
-    )
-    # print(x)
+    df_no_hero = df_godjira = df_yokai = df_cyber_kongz = df_lyz = df_etherman = df_creepz = pd.DataFrame()
+
+    for _ in range(6000):
+        no_hero = NoHero(attack_bonus=ATTACK_BONUS, defense_bonus=DEFENSE_BONUS)
+        godjira = Godjira(attack_bonus=ATTACK_BONUS, defense_bonus=DEFENSE_BONUS, rarity='epic')
+        yokai = Yokai(attack_bonus=ATTACK_BONUS, defense_bonus=DEFENSE_BONUS, rarity='epic')
+        cyber_kongz = CyberKongz(attack_bonus=ATTACK_BONUS, defense_bonus=DEFENSE_BONUS, rarity='epic')
+        lyz = Lyz(attack_bonus=ATTACK_BONUS, defense_bonus=DEFENSE_BONUS, rarity='epic')
+        etherman = Etherman(attack_bonus=ATTACK_BONUS, defense_bonus=DEFENSE_BONUS, rarity='epic')
+        creepz = Creepz(attack_bonus=ATTACK_BONUS, defense_bonus=DEFENSE_BONUS, rarity='epic')
+
+        while no_hero.day < 6:
+            no_hero.battle()
+            godjira.battle()
+            yokai.battle()
+            cyber_kongz.battle()
+            lyz.battle()
+            etherman.battle()
+
+        while creepz.day < 6:
+            if creepz.charges > 0:
+                creepz.battle()
+            else:
+                new_no_hero = NoHero(attack_bonus=ATTACK_BONUS, defense_bonus=DEFENSE_BONUS)
+                new_no_hero.battle()
+                creepz.attacks -= 1
+                creepz.qtd_attacks += 1
+                creepz.goldz += new_no_hero.goldz
+                creepz.energy_cost += new_no_hero.energy_cost
+                creepz.wait_a_day()
+
+        df_no_hero = df_no_hero.append([no_hero])
+        df_godjira = df_godjira.append([godjira])
+        df_yokai = df_yokai.append([yokai])
+        df_cyber_kongz = df_cyber_kongz.append([cyber_kongz])
+        df_etherman = df_etherman.append([etherman])
+        df_lyz = df_lyz.append([lyz])
+        df_creepz = df_creepz.append([creepz])
+
+    dfs = [df_no_hero, df_godjira, df_yokai, df_cyber_kongz, df_etherman, df_lyz, df_creepz]
+    names = ["no_hero", 'godjira', 'yokai', 'cyber_kongz', 'etherman', 'lyz', 'creepz']
+    df_goldz = merge_dfs(column='goldz', dfs=dfs, names=names).mean().rename_axis('goldz')
+    df_energy = merge_dfs(column='energy_cost', dfs=dfs, names=names).mean().rename_axis('energy_cost')
+    df_qtd_attacks = merge_dfs(column='qtd_attacks', dfs=dfs, names=names).mean().rename_axis('number_of_attacks')
+    df = pd.concat([df_goldz, df_energy, df_qtd_attacks], keys=['goldz', 'energy_cost', 'number_of_attacks'], axis=1).T
+    print(df)
