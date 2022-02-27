@@ -3,9 +3,9 @@ from dataclasses import dataclass
 
 import pandas as pd
 
-rarity_table = json.load(open("utils/rarity_table.json"))
-humanz_table = json.load(open("utils/humanz.json"))
-animalz_table = json.load(open("utils/animalz.json"))
+rarity_table = json.load(open("../utils/rarity_table.json"))
+humanz_table = json.load(open("../utils/humanz.json"))
+animalz_table = json.load(open("../utils/animalz.json"))
 
 unique_feudalz_idz = [
     "177",

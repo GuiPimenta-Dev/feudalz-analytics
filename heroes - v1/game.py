@@ -126,7 +126,7 @@ class Game:
         return self.me.attack_bonus, self.enemy.defense_bonus, energy, goldz
 
     def __urzog(self, my_dice, enemy_dice, rarity):
-        stats = {"usual": 0.25, "unusual": 0.50, "rare": 0.75, "epic": 1}
+        stats = {"common": 0.25, "uncommon": 0.50, "rare": 0.75, "epic": 1}
         my_total = my_dice + self.me.attack_bonus
         enemy_defense_bonus = self.enemy.defense_bonus
         critical = choices([True, False], [stats[rarity], 1 - stats[rarity]])[0]
@@ -141,7 +141,7 @@ class Game:
         return self.me.attack_bonus, enemy_defense_bonus, energy, goldz
 
     def __dicez(self, my_dice, enemy_dice, rarity):
-        stats = {"usual": 1, "unusual": 2, "rare": 3, "epic": 4}
+        stats = {"common": 1, "uncommon": 2, "rare": 3, "epic": 4}
         dices = [randint(1, 70) for _ in range(stats[rarity])]
         my_dice = max([my_dice, max(dices)])
         my_total = my_dice + self.me.attack_bonus
@@ -154,7 +154,7 @@ class Game:
         return self.me.attack_bonus, self.enemy.defense_bonus, energy, goldz
 
     def __kongz(self, my_dice, enemy_dice, rarity):
-        stats = {"usual": 0.25, "unusual": 0.50, "rare": 0.75, "epic": 1}
+        stats = {"common": 0.25, "uncommon": 0.50, "rare": 0.75, "epic": 1}
         my_total = my_dice + self.me.attack_bonus
         critical = choices([True, False], [stats[rarity], 1 - stats[rarity]])[0]
         if critical:
@@ -167,7 +167,7 @@ class Game:
         return my_total - 2 * my_dice, self.enemy.defense_bonus, energy, goldz
 
     def __lyz(self, my_dice, enemy_dice, rarity):
-        stats = {"usual": 0.25, "unusual": 0.5, "rare": 0.75, "epic": 1}
+        stats = {"common": 0.25, "uncommon": 0.5, "rare": 0.75, "epic": 1}
         my_total = my_dice + self.me.attack_bonus
         critical = choices([True, False], [stats[rarity], 1 - stats[rarity]])[0]
         enemy_total = enemy_dice + self.enemy.defense_bonus
@@ -182,7 +182,7 @@ class Game:
         return self.me.attack_bonus, self.enemy.defense_bonus, energy, goldz
 
     def __vampirao(self, my_dice, enemy_dice, rarity):
-        stats = {"usual": 0.25, "unusual": 0.50, "rare": 0.75, "epic": 1}
+        stats = {"common": 0.25, "uncommon": 0.50, "rare": 0.75, "epic": 1}
         my_total = my_dice + self.me.attack_bonus
         critical = choices([True, False], [stats[rarity], 1 - stats[rarity]])[0]
         enemy_total = enemy_dice + self.enemy.defense_bonus
@@ -208,7 +208,7 @@ class Game:
         )
         goldz = self.__calculate_earning(my_total, enemy_total)
         if self.my_land.attacks == 1:
-            stats = {"usual": 0.25, "unusual": 0.50, "rare": 0.75, "epic": 1}
+            stats = {"common": 0.25, "uncommon": 0.50, "rare": 0.75, "epic": 1}
             critical = choices([True, False], [stats[rarity], 1 - stats[rarity]])[0]
             if critical:
                 my_new_dice = randint(1, 70)
