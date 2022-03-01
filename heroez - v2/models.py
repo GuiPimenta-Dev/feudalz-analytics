@@ -34,7 +34,7 @@ earnings_range = [
 @dataclass
 class Land(ABC):
     day = 1
-    energy_cost: int = 0
+    energy: int = MAX_ENERGY
     attacks = NUMBER_OF_ATTACKS
     goldz: float = 0
     qtd_attacks: int = 0
@@ -60,7 +60,7 @@ class Land(ABC):
             self.day += 1
 
     def self_damage(self, enemy_total):
-        self.energy_cost += round(enemy_total * (1 - (0.008 * self.defense_bonus)), 2)
+        self.energy -= round(enemy_total * (1 - (0.008 * self.defense_bonus)), 2)
 
     def claim_gold(self, my_total, enemy_total):
         self.qtd_attacks += 1
@@ -68,6 +68,7 @@ class Land(ABC):
         for item in earnings_range:
             if percentage >= item["percentage"]:
                 self.goldz += item["earning"]
+                return
 
 
 @dataclass
@@ -82,6 +83,7 @@ class NoHero(Land):
         self.self_damage(enemy_total=enemy_total)
         self.claim_gold(my_total=my_total, enemy_total=enemy_total)
         self.wait_a_day()
+
 
 
 @dataclass
@@ -184,7 +186,7 @@ class Etherman(Land):
         my_total = my_dice + self.attack_bonus
         special = choices([True, False], [stats[self.rarity], 1 - stats[self.rarity]])[0]
         if special:
-            self.energy_cost -= my_dice + self.defense_bonus
+            self.energy += my_dice + self.defense_bonus
         enemy_total = self.defend()
         self.self_damage(enemy_total=enemy_total)
         self.attacks -= 1
